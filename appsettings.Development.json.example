@@ -1,0 +1,19 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "cs": "Your connection string here"
+  },
+  "JWT": {
+    "SecretKey": "Your secret key here (at least 32 characters)",
+    "Issuer": "WebAPIDotNet",
+    "Audience": "WebAPIDotNetUsers",
+    "DurationInDays": 7
+  }
+}
+
+
