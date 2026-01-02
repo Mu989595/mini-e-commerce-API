@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +13,7 @@ namespace WebAPIDotNet.Controllers
     [ApiController]
     public class AcountController : ControllerBase
     {
-        public readonly UserManager<ApplicationUser> userManager;
+           public readonly UserManager<ApplicationUser> userManager;
         private readonly JWTService jwtService;
 
         public AcountController(UserManager<ApplicationUser> UserManager, JWTService JWTService)
@@ -23,7 +25,7 @@ namespace WebAPIDotNet.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> Register(RegisterDTO UserfromRequest)
         {
-            if (ModelState.IsValid)
+         if (ModelState.IsValid)
             {
                 // save db 
                 ApplicationUser user = new ApplicationUser();
@@ -39,7 +41,7 @@ namespace WebAPIDotNet.Controllers
                     return Ok("Created");
                 }
 
-                foreach (var item in result.Errors)
+                foreach (var item in result.Errors) 
                 {
                     ModelState.AddModelError("Password", item.Description);
                 }
@@ -63,7 +65,7 @@ namespace WebAPIDotNet.Controllers
                 if (user == null)
                 {
                     user = await userManager.FindByNameAsync(email);
-                }
+        }
                 
                 if (user != null)
                 {
@@ -101,6 +103,40 @@ namespace WebAPIDotNet.Controllers
             }
 
             return BadRequest(ModelState);
+        }
+
+        [HttpGet("GetMyInfo")]
+        [Authorize]  // This endpoint requires authentication!
+        public async Task<IActionResult> GetMyInfo()
+        {
+            // Get current user ID from token claims
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (userId == null)
+            {
+                return Unauthorized("User not found in token");
+            }
+            
+            // Find user in database
+            var user = await userManager.FindByIdAsync(userId);
+            
+            if (user == null)
+            {
+                return NotFound("User not found in database");
+            }
+            
+            // Get user roles
+            var roles = await userManager.GetRolesAsync(user);
+            
+            return Ok(new
+            {
+                UserId = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                Name = user.Name,
+                Roles = roles,
+                Message = "This is a protected endpoint - you are authenticated!"
+            });
         }
     }
 }
