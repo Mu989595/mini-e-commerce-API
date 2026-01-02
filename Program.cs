@@ -30,7 +30,7 @@ namespace WebAPIDotNet
                 });
             });
             
-            // Add JWT Service
+            // Add JWT Service 
             builder.Services.AddScoped<JWTService>();
             builder.Services.AddDbContext<Context>(options =>
             {
@@ -66,7 +66,7 @@ namespace WebAPIDotNet
                 };
             });
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            // Learn more about configuring Swagger/OpenAPI at https://aka. ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
