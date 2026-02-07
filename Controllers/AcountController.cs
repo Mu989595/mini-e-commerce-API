@@ -13,7 +13,7 @@ namespace WebAPIDotNet.Controllers
     [ApiController]
     public class AcountController : ControllerBase
     {
-           public readonly UserManager<ApplicationUser> userManager;
+         public readonly UserManager<ApplicationUser> userManager;
         private readonly JWTService jwtService;
 
         public AcountController(UserManager<ApplicationUser> UserManager, JWTService JWTService)
