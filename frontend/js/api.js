@@ -38,6 +38,10 @@ const api = {
             return data;
         } catch (error) {
             console.error('API Error:', error);
+            // Handle network errors (CORS, connection issues, etc.)
+            if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+                throw new Error('Cannot connect to the server. Please make sure the API is running and CORS is enabled.');
+            }
             throw error;
         }
     },

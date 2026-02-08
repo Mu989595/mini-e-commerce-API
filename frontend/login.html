@@ -31,7 +31,12 @@
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" required>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="password" name="password" required>
+                            <button type="button" id="toggle-password" class="toggle-password-btn" aria-label="Toggle password visibility">
+                                <span id="eye-icon">👁️</span>
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" class="btn-primary btn-block">Login</button>
                 </form>

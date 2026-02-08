@@ -2,6 +2,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const eyeIcon = document.getElementById('eye-icon');
+
+    // Toggle password visibility
+    if (togglePasswordBtn && eyeIcon) {
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            eyeIcon.textContent = type === 'password' ? '👁️' : '🙈';
+        });
+    }
 
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -32,7 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage.style.display = 'block';
             }
         } catch (error) {
-            errorMessage.textContent = error.message || 'An error occurred during login';
+            let errorMsg = error.message || 'An error occurred during login';
+            
+            // Provide more helpful error messages
+            if (errorMsg.includes('Cannot connect')) {
+                errorMsg = 'Cannot connect to the server. Please make sure:\n1. The API is running\n2. CORS is enabled in the API\n3. The API URL is correct in js/api.js';
+            }
+            
+            errorMessage.textContent = errorMsg;
             errorMessage.style.display = 'block';
         }
     });
