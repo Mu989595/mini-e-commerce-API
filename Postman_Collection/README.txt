@@ -1,0 +1,1 @@
+Please export your Postman Collection (e.g., as a JSON file) and place it in this folder. This will allow others to easily test your API endpoints.

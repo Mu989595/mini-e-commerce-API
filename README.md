@@ -1,179 +1,67 @@
-# Web API .NET - Authentication System
+# Mini E-Commerce API
 
-A complete Web API with user registration, login, and JWT token authentication built with ASP.NET Core.
+This project is a mini e-commerce API built with ASP.NET Core, providing core functionalities for user authentication and product management.
 
-## 🚀 Features
+## Tech Stack
 
-- ✅ User Registration
-- ✅ User Login
-- ✅ JWT Token Authentication
-- ✅ ASP.NET Core Identity
-- ✅ Entity Framework Core
-- ✅ Modern Frontend UI
-- ✅ CORS Support
+*   ASP.NET 9 Core Web API
+*   Entity Framework Core
+*   SQL Server
+*   ASP.NET Core Identity
+*   JWT (JSON Web Tokens) for authentication
 
-## 📁 Project Structure
+## Features
 
-```
-WebAPIDotNet/
-├── Controllers/
-│   ├── AcountController.cs    # Registration & Login endpoints
-│   └── ApplicationUser.cs     # User entity
-├── Models/
-│   ├── Context.cs             # Database context
-│   ├── Department.cs
-│   └── Employee.cs
-├── DTO/
-│   ├── RegisterDTO.cs         # Registration data model
-│   └── LoginDTO.cs            # Login data model
-├── Services/
-│   └── JWTService.cs          # JWT token generation
-└── WebAPIDotNet-Frontend/     # Frontend application
-    ├── index.html
-    ├── styles.css
-    └── app.js
-```
+*   **User Registration:** Allows new users to register with the system.
+*   **User Login:** Authenticates users and generates a JWT for authorization.
+*   **JWT Token Generation:** Securely generates JWT tokens for authenticated users.
+*   **Product Management:** (Assuming you have CRUD operations for products) - You can add more specific details here.
+*   **Category Management:** (Assuming you have CRUD operations for categories) - You can add more specific details here.
 
-## 🛠️ Technology Stack
+## Setup
 
-- **Backend:** ASP.NET Core 8.0
-- **Database:** SQL Server (LocalDB)
-- **Authentication:** ASP.NET Core Identity + JWT
-- **Frontend:** HTML, CSS, JavaScript
+Follow these steps to get the project up and running on your local machine:
 
-## 📋 Prerequisites
+1.  **Database Setup (Entity Framework Core Migrations):**
+    If you have not already, run the following commands in your Package Manager Console (or terminal if using `dotnet ef` commands) to create and update your database:
 
-- .NET 8.0 SDK
-- Visual Studio 2022 (or VS Code)
-- SQL Server (LocalDB included with Visual Studio)
+    ```bash
+    Update-Database
+    ```
+    *Note: Ensure you have the Entity Framework Core tools installed.* If you encounter issues, you may need to add a migration first:
+    ```bash
+    Add-Migration InitialCreate
+    Update-Database
+    ```
 
-## ⚙️ Setup Instructions
+2.  **Configure Connection String:**
+    Open the `appsettings.json` file and update the `DefaultConnection` string under `ConnectionStrings` to point to your SQL Server instance. Replace `"YourServerPath"` with your actual SQL Server connection string.
 
-### 1. Clone Repository
+    ```json
+    "ConnectionStrings": {
+        "DefaultConnection": "Server=Your_Server_Name;Database=Your_Database_Name;Integrated Security=True;TrustServerCertificate=True"
+    }
+    ```
 
-```bash
-git clone https://github.com/yourusername/WebAPIDotNet.git
-cd WebAPIDotNet
-```
+3.  **Configure JWT Secret Key:**
+    Open the `appsettings.json` file and update the `SecretKey` in the `JWT` section. Replace `"YourSecretKeyHere"` with a strong, secret key of your choice. This key is crucial for the security of your JWT tokens.
 
-### 2. Configure Database
+    ```json
+    "JWT": {
+        "SecretKey": "Your_Strong_And_Secret_Key_Here",
+        "Issuer": "MiniEcommerceBackend",
+        "Audience": "MiniEcommerceFrontend",
+        "DurationInDays": "7"
+    }
+    ```
 
-1. Update `appsettings.json` with your connection string
-2. Run migrations:
-   ```bash
-   dotnet ef database update
-   ```
+4.  **Run the Application:**
+    You can run the application using Visual Studio or from the terminal:
 
-### 3. Configure JWT
+    ```bash
+    dotnet run
+    ```
 
-Edit `appsettings.json`:
-```json
-{
-  "JWT": {
-    "SecretKey": "YourSuperSecretKeyForJWTTokenGenerationThatShouldBeAtLeast32CharactersLong!",
-    "Issuer": "WebAPIDotNet",
-    "Audience": "WebAPIDotNetUsers",
-    "DurationInDays": 7
-  }
-}
-```
+## Postman Collection
 
-### 4. Run the API
-
-```bash
-dotnet run
-```
-
-API will run on: `http://localhost:5053`
-
-### 5. Run Frontend
-
-1. Open `WebAPIDotNet-Frontend/index.html` in browser
-2. Or use Live Server in VS Code
-
-## 📚 API Endpoints
-
-### Register
-```
-POST /api/Acount/Register
-Content-Type: application/json
-
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "SecurePass123"
-}
-```
-
-### Login
-```
-POST /api/Acount/Login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "SecurePass123"
-}
-```
-
-**Response:**
-```json
-{
-  "message": "Login successful",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "userId": "...",
-  "userName": "john@example.com",
-  "email": "john@example.com",
-  "name": "John Doe",
-  "roles": []
-}
-```
-
-## 🔒 Security Notes
-
-⚠️ **Important:** Before deploying to production:
-
-1. Change JWT SecretKey in `appsettings.json`
-2. Use HTTPS
-3. Secure your connection string
-4. Enable proper CORS settings
-5. Review and harden security settings
-
-## 📖 Documentation
-
-- [Learning Guide](LEARNING_GUIDE.md) - Complete step-by-step explanation
-- [Code Walkthrough](CODE_WALKTHROUGH.md) - Visual code explanation
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) - How to deploy
-- [Git Setup Guide](.github/GIT_SETUP_GUIDE.md) - GitHub setup
-
-## 🧪 Testing
-
-### Using Swagger
-1. Run the API
-2. Navigate to: `http://localhost:5053/swagger`
-3. Test endpoints directly
-
-### Using Frontend
-1. Open `WebAPIDotNet-Frontend/index.html`
-2. Register a new user
-3. Login to get JWT token
-
-## 📝 License
-
-This project is open source and available for learning purposes.
-
-## 👤 Author
-
-Your Name
-
-## 🙏 Acknowledgments
-
-- Built with ASP.NET Core
-- Uses ASP.NET Core Identity
-- Frontend built with vanilla JavaScript
-
----
-
-**Happy Coding! 🚀**
-
-
+To easily test the API endpoints, import the Postman Collection located in the `Postman_Collection` folder into your Postman application. This collection contains pre-configured requests for registration, login, and other API functionalities. (The Postman Collection file needs to be exported from your Postman environment and placed in the `Postman_Collection` folder.)

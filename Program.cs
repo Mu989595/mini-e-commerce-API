@@ -1,13 +1,12 @@
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using WebAPIDotNet.Controllers;
-using WebAPIDotNet.Models;
-using WebAPIDotNet.Services;
+using Mini_E_Commerce_API.Models;
+using Mini_E_Commerce_API.Services;
 
-namespace WebAPIDotNet
+namespace Mini_E_Commerce_API
 {
     public class Program
     {
@@ -15,33 +14,22 @@ namespace WebAPIDotNet
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
+            // 1. ????? ??????? ???????? (Controllers & OpenAPI)
             builder.Services.AddControllers();
-            
-            // Add CORS to allow frontend to communicate with API
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowFrontend", policy =>
-                {
-                    policy.AllowAnyOrigin()  // Allow any origin for development
-                          .AllowAnyMethod()
-                          .AllowAnyHeader();
-                });
-            });
-            
-            // Add JWT Service 
-            builder.Services.AddScoped<JWTService>();
-            builder.Services.AddDbContext<Context>(options =>
-            {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("cs"));
-            });
+            builder.Services.AddOpenApi();
 
-            // Add Identity services
+            // 2. ????? ??? DbContext (??????? ??? ???? ??? ????? ???????)
+            builder.Services.AddDbContext<ApplicationContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // 3. ????? ??? Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<Context>();
+                .AddEntityFrameworkStores<ApplicationContext>();
 
-            // Configure JWT Authentication
+            // 4. ????? ??? JWTService ?????? ??
+            builder.Services.AddScoped<JWTService>();
+
+            // 5. ????? ??? JWT Authentication (??? ?? ???? ??? builder.Build)
             var jwtSettings = builder.Configuration.GetSection("JWT");
             var secretKey = jwtSettings["SecretKey"];
             var issuer = jwtSettings["Issuer"];
@@ -66,25 +54,20 @@ namespace WebAPIDotNet
                 };
             });
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka. ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
+            // --- ???? ??????? ---
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // 6. ????? ??? Middleware Pipeline
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.MapOpenApi();
             }
 
-            // Enable CORS
-            app.UseCors("AllowFrontend");
-            
+            app.UseHttpsRedirection();
+
+            // ??????? ??? ??? ????: ?????? ??? ?????? ????? ?? ?????? ?? ????????
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

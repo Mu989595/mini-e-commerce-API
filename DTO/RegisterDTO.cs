@@ -1,11 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WebAPIDotNet.DTO
+namespace Mini_E_Commerce_API.DTO
 {
     public class RegisterDTO
     {
         [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; }
+
+        // Add Required for UserName and make the set public
+        [Required(ErrorMessage = "UserName is required")]
+        public string UserName { get; set; }
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
