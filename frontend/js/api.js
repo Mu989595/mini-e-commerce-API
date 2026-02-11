@@ -1,5 +1,6 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api'; // Change this to your API URL
+// Update this URL to match your API port (check Properties/launchSettings.json)
+const API_BASE_URL = 'http://localhost:5045/api'; // Default port from launchSettings.json
 
 // API Helper Functions
 const api = {
@@ -40,7 +41,13 @@ const api = {
             console.error('API Error:', error);
             // Handle network errors (CORS, connection issues, etc.)
             if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
-                throw new Error('Cannot connect to the server. Please make sure the API is running and CORS is enabled.');
+                const errorMsg = 'Cannot connect to the server.\n\n' +
+                    'Please make sure:\n' +
+                    '1. The API is running (run: dotnet run)\n' +
+                    '2. Check the API port in Properties/launchSettings.json\n' +
+                    '3. Update API_BASE_URL in js/api.js if needed\n' +
+                    '4. The API URL is: ' + API_BASE_URL;
+                throw new Error(errorMsg);
             }
             throw error;
         }

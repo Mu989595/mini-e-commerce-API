@@ -14,22 +14,34 @@ namespace Mini_E_Commerce_API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // 1. ????? ??????? ???????? (Controllers & OpenAPI)
+            // 1. Add services to the container (Controllers & OpenAPI)
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
-            // 2. ????? ??? DbContext (??????? ??? ???? ??? ????? ???????)
+            // 2. Add CORS policy to allow frontend requests (including file://)
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.SetIsOriginAllowed(origin => true) // Allow all origins including file://
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
+            // 3. Add DbContext (Database connection configuration)
             builder.Services.AddDbContext<ApplicationContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // 3. ????? ??? Identity
+            // 4. Add Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationContext>();
 
-            // 4. ????? ??? JWTService ?????? ??
+            // 5. Add JWTService as scoped
             builder.Services.AddScoped<JWTService>();
 
-            // 5. ????? ??? JWT Authentication (??? ?? ???? ??? builder.Build)
+            // 6. Add JWT Authentication (before calling builder.Build)
             var jwtSettings = builder.Configuration.GetSection("JWT");
             var secretKey = jwtSettings["SecretKey"];
             var issuer = jwtSettings["Issuer"];
@@ -54,18 +66,21 @@ namespace Mini_E_Commerce_API
                 };
             });
 
-            // --- ???? ??????? ---
+            // --- Build the application ---
             var app = builder.Build();
 
-            // 6. ????? ??? Middleware Pipeline
+            // 7. Configure Middleware Pipeline
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
             }
 
+            // Enable CORS (must be before UseAuthentication and UseAuthorization)
+            app.UseCors("AllowFrontend");
+
             app.UseHttpsRedirection();
 
-            // ??????? ??? ??? ????: ?????? ??? ?????? ????? ?? ?????? ?? ????????
+            // Important order: Authentication must come before Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 

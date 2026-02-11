@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore; // مهم عشان Async
 using Mini_E_Commerce_API.DTO;
 using Mini_E_Commerce_API.Models;
 
@@ -7,53 +8,63 @@ namespace Mini_E_Commerce_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+     [Authorize] // مفعل عشان الأمان
     public class ProductController(ApplicationContext context) : ControllerBase
     {
-
         private readonly ApplicationContext _context = context;
 
-
+        // 1. GET ALL: Async + AsNoTracking (Performance)
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            // 1. Retrieve data from the database (as Entity)
-            var productsFromDb = _context.Products.ToList();
+            // تحسين الأداء: بنعمل Select جوه الداتا بيز عشان نرجع الأعمدة المطلوبة بس
+            // AsNoTracking: بتسرع الاستعلام لأننا مش محتاجين نعدل الداتا دي
+            var products = await _context.Products
+                .AsNoTracking()
+                .Select(p => new ProductsDto
+                {
+                    Id = p.Id,
+                    name = p.name,       // يفضل تخليها Name (Capital) في الموديل مستقبلاً
+                    Price = p.Price,
+                    CatogryId = p.CatogryId // يفضل تعديلها لـ CategoryId مستقبلاً
+                })
+                .ToListAsync();
 
-            // 2. Convert Entity to DTO (manual conversion as discussed)
-            var productsDtoList = productsFromDb.Select(p => new ProductsDto
-            {
-                Id = p.Id,
-                name = p.name,
-                Price = p.Price,
-                CatogryId = p.CatogryId
-            }).ToList();
-
-            // 3. Return the DTO to the user
-            return Ok(productsDtoList);
+            return Ok(products);
         }
 
-        public async Task<IActionResult> GetByIdAsync(int id)
+        // 2. GET BY ID: Added Route + Async
+        [HttpGet("{id}")] // لازم نحدد الـ Route عشان يعرف ياخد الـ ID من الرابط
+        public async Task<IActionResult> GetById(int id)
         {
-            var productFromDb = await _context.Products.FindAsync(id);
-            if (productFromDb == null)
+            var product = await _context.Products.FindAsync(id);
+
+            if (product == null)
             {
-                return NotFound();
+                return NotFound($"Product with ID {id} not found.");
             }
+
             var productDto = new ProductsDto
             {
-                Id = productFromDb.Id,
-                name = productFromDb.name,
-                Price = productFromDb.Price,
-                CatogryId = productFromDb.CatogryId
-
+                Id = product.Id,
+                name = product.name,
+                Price = product.Price,
+                CatogryId = product.CatogryId
             };
+
             return Ok(productDto);
         }
+
+        // 3. CREATE: Validation + 201 Created Response
         [HttpPost]
-        // Added async and Task here
         public async Task<IActionResult> Create([FromBody] ProductsDto productDto)
         {
+            // التأكد إن البيانات مبعوثة صح حسب الـ Annotations اللي في الـ DTO
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var productEntity = new Product
             {
                 name = productDto.name,
@@ -61,23 +72,20 @@ namespace Mini_E_Commerce_API.Controllers
                 CatogryId = productDto.CatogryId
             };
 
-            _context.Products.Add(productEntity);
-            await _context.SaveChangesAsync(); // await requires the method to be async
+            await _context.Products.AddAsync(productEntity);
+            await _context.SaveChangesAsync();
 
+            // تحديث الـ ID في الـ DTO عشان يرجع لليوزر
             productDto.Id = productEntity.Id;
 
-            var response = new GeneralResponse
+            // Best Practice: في الـ POST بنرجع 201 Created مش 200 OK
+            // وبنرجع في الـ Header رابط للمنتج الجديد
+            return CreatedAtAction(nameof(GetById), new { id = productEntity.Id }, new
             {
                 IsSuccess = true,
                 Message = "Product created successfully!",
-                Data = productDto // We send the DTO here so the user sees what was added
-            };
-
-            return Ok(response);
+                Data = productDto
+            });
         }
     }
-    
 }
-    
-
-
