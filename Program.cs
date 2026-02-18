@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Mini_E_Commerce_API.Data;
 using Mini_E_Commerce_API.Models;
@@ -106,7 +107,28 @@ namespace Mini_E_Commerce_API
             // Enable CORS (must be before UseAuthentication and UseAuthorization)
             app.UseCors("AllowFrontend");
 
-            app.UseHttpsRedirection();
+            // Keep HTTP convenient in development so localhost links open directly.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
+            // Serve frontend pages from /frontend folder at the site root.
+            var frontendPath = Path.Combine(app.Environment.ContentRootPath, "frontend");
+            if (Directory.Exists(frontendPath))
+            {
+                var frontendProvider = new PhysicalFileProvider(frontendPath);
+                app.UseDefaultFiles(new DefaultFilesOptions
+                {
+                    FileProvider = frontendProvider,
+                    RequestPath = ""
+                });
+                app.UseStaticFiles(new StaticFileOptions
+                {
+                    FileProvider = frontendProvider,
+                    RequestPath = ""
+                });
+            }
 
             // Important order: Authentication must come before Authorization
             app.UseAuthentication();
@@ -114,8 +136,8 @@ namespace Mini_E_Commerce_API
 
             app.MapControllers();
 
-            // Root endpoint info
-            app.MapGet("/", () => new { message = "Mini E-Commerce API", version = "1.0", endpoints = new { products = "/api/products", login = "/api/account/login", register = "/api/account/register" } });
+            // API info endpoint
+            app.MapGet("/api", () => new { message = "Mini E-Commerce API", version = "1.0", endpoints = new { products = "/api/products", login = "/api/account/login", register = "/api/account/register" } });
 
             app.Run();
         }
