@@ -25,7 +25,7 @@ namespace Mini_E_Commerce_API.Controllers
                 {
                     Id = p.Id,
                     name = p.Name,
-                    Price = (int)p.Price,
+                    Price = p.Price,
                     CatogryId = p.CategoryId
                 })
                 .ToListAsync();
@@ -48,7 +48,7 @@ namespace Mini_E_Commerce_API.Controllers
             {
                 Id = product.Id,
                 name = product.Name,
-                Price = (int)product.Price,
+                Price = product.Price,
                 CatogryId = product.CategoryId
             };
 

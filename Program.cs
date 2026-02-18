@@ -62,12 +62,9 @@ namespace Mini_E_Commerce_API
             builder.Services.AddScoped<JWTService>();
 
             // 6. Add Logging
-            builder.Services.AddLogging(config =>
-            {
-                config.AddConsole();
-                config.AddDebug();
-                // TODO: Add Serilog for structured logging in production
-            });
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.AddDebug();
 
             // 7. Add JWT Authentication
             var jwtSettings = builder.Configuration.GetSection("JWT");
