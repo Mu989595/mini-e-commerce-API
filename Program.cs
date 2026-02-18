@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Mini_E_Commerce_API.Data;
 using Mini_E_Commerce_API.Models;
 using Mini_E_Commerce_API.Services;
 
@@ -18,30 +19,58 @@ namespace Mini_E_Commerce_API
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
-            // 2. Add CORS policy to allow frontend requests (including file://)
+            // 2. Add CORS policy with restricted origins
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.SetIsOriginAllowed(origin => true) // Allow all origins including file://
-                        .AllowAnyHeader()
+                    // For production, replace with actual domain
+                    policy.WithOrigins("http://localhost:3000", "https://yourdomain.com")
                         .AllowAnyMethod()
+                        .AllowAnyHeader()
                         .AllowCredentials();
                 });
             });
 
             // 3. Add DbContext (Database connection configuration)
             builder.Services.AddDbContext<ApplicationContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    sqlOptions => sqlOptions
+                        .EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelaySeconds: 10)
+                        .CommandTimeout(30)
+                )
+                .EnableSensitiveDataLogging(builder.Environment.IsDevelopment())
+            );
 
             // 4. Add Identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationContext>();
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<ApplicationContext>()
+            .AddDefaultTokenProviders();
 
-            // 5. Add JWTService as scoped
+            // 5. Add Repository & Service Layer (Dependency Injection)
+            builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<JWTService>();
 
-            // 6. Add JWT Authentication (before calling builder.Build)
+            // 6. Add Logging
+            builder.Services.AddLogging(config =>
+            {
+                config.AddConsole();
+                config.AddDebug();
+                // TODO: Add Serilog for structured logging in production
+            });
+
+            // 7. Add JWT Authentication
             var jwtSettings = builder.Configuration.GetSection("JWT");
             var secretKey = jwtSettings["SecretKey"];
             var issuer = jwtSettings["Issuer"];
@@ -62,14 +91,22 @@ namespace Mini_E_Commerce_API
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = issuer,
                     ValidAudience = audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)),
+                    ClockSkew = TimeSpan.Zero
                 };
             });
 
             // --- Build the application ---
             var app = builder.Build();
 
-            // 7. Configure Middleware Pipeline
+            // 8. Run migrations on startup (optional, can be done manually)
+            // using (var scope = app.Services.CreateScope())
+            // {
+            //     var db = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+            //     db.Database.Migrate();
+            // }
+
+            // 9. Configure Middleware Pipeline
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();

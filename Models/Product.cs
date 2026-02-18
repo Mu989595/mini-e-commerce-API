@@ -1,16 +1,50 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Mini_E_Commerce_API.Models
 {
+    /// <summary>
+    /// Product Entity
+    /// Represents a product in the e-commerce system
+    /// 
+    /// Constraints:
+    /// - Name: Required, max 200 chars, indexed
+    /// - Price: Decimal (not int), must be positive
+    /// - CategoryId: Foreign key with cascade delete
+    /// - Audit fields for tracking changes
+    /// </summary>
     public class Product
     {
+        [Key]
         public int Id { get; set; }
-        public string name { get; set; }
 
-        public int Price { get; set; }
-        [ForeignKey("Catogry")]
+        [Required(ErrorMessage = "Product name is required")]
+        [MaxLength(200, ErrorMessage = "Product name cannot exceed 200 characters")]
+        [Column(TypeName = "nvarchar(200)")]
+        public string Name { get; set; } = null!;
 
-        public int CatogryId { get; set; }
+        [Required(ErrorMessage = "Product price is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Price { get; set; }
 
-        }
+        [Required(ErrorMessage = "Category is required")]
+        [ForeignKey(nameof(Category))]
+        public int CategoryId { get; set; }
+
+        // Navigation Property
+        public Category? Category { get; set; }
+
+        // ============ Audit Fields ============
+        [Column(TypeName = "datetime2")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Column(TypeName = "datetime2")]
+        public DateTime? UpdatedAt { get; set; }
+
+        // ============ Concurrency Control (Optional) ============
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+    }
 }
+
