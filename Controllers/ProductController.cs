@@ -24,9 +24,9 @@ namespace Mini_E_Commerce_API.Controllers
                 .Select(p => new ProductsDto
                 {
                     Id = p.Id,
-                    name = p.name,       // يفضل تخليها Name (Capital) في الموديل مستقبلاً
-                    Price = p.Price,
-                    CatogryId = p.CatogryId // يفضل تعديلها لـ CategoryId مستقبلاً
+                    name = p.Name,
+                    Price = (int)p.Price,
+                    CatogryId = p.CategoryId
                 })
                 .ToListAsync();
 
@@ -47,9 +47,9 @@ namespace Mini_E_Commerce_API.Controllers
             var productDto = new ProductsDto
             {
                 Id = product.Id,
-                name = product.name,
-                Price = product.Price,
-                CatogryId = product.CatogryId
+                name = product.Name,
+                Price = (int)product.Price,
+                CatogryId = product.CategoryId
             };
 
             return Ok(productDto);
@@ -67,9 +67,9 @@ namespace Mini_E_Commerce_API.Controllers
 
             var productEntity = new Product
             {
-                name = productDto.name,
+                Name = productDto.name,
                 Price = productDto.Price,
-                CatogryId = productDto.CatogryId
+                CategoryId = productDto.CatogryId
             };
 
             await _context.Products.AddAsync(productEntity);

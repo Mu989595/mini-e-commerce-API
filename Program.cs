@@ -15,9 +15,8 @@ namespace Mini_E_Commerce_API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // 1. Add services to the container (Controllers & OpenAPI)
+            // 1. Add services to the container (Controllers)
             builder.Services.AddControllers();
-            builder.Services.AddOpenApi();
 
             // 2. Add CORS policy with restricted origins
             builder.Services.AddCors(options =>
@@ -37,7 +36,7 @@ namespace Mini_E_Commerce_API
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
                     sqlOptions => sqlOptions
-                        .EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelaySeconds: 10)
+                        .EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null)
                         .CommandTimeout(30)
                 )
                 .EnableSensitiveDataLogging(builder.Environment.IsDevelopment())
@@ -107,11 +106,6 @@ namespace Mini_E_Commerce_API
             // }
 
             // 9. Configure Middleware Pipeline
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-            }
-
             // Enable CORS (must be before UseAuthentication and UseAuthorization)
             app.UseCors("AllowFrontend");
 
@@ -122,6 +116,9 @@ namespace Mini_E_Commerce_API
             app.UseAuthorization();
 
             app.MapControllers();
+
+            // Root endpoint info
+            app.MapGet("/", () => new { message = "Mini E-Commerce API", version = "1.0", endpoints = new { products = "/api/products", login = "/api/account/login", register = "/api/account/register" } });
 
             app.Run();
         }

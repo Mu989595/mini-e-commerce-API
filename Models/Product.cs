@@ -24,7 +24,7 @@ namespace Mini_E_Commerce_API.Models
         public string Name { get; set; } = null!;
 
         [Required(ErrorMessage = "Product price is required")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
+        [Range(0.01, 999999.99, ErrorMessage = "Price must be between 0.01 and 999999.99")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
